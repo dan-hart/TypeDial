@@ -94,6 +94,8 @@ void td_render_prepare(const TdLayout *layout, const TdMask masks[2], TdColors c
       for (int x = box.x; x < box.x + box.w; ++x)
         if (td_mask_pixel(&masks[i], false, x, y))
           set_base_pixel(x, y, i == 0 ? HOUR_DIGIT : MINUTE_DIGIT, colors);
+        else if (layout->digits_in_front && td_mask_pixel(&masks[i], true, x, y))
+          set_base_pixel(x, y, BG, colors);
   }
 }
 

@@ -121,6 +121,8 @@ for (const [platform, width, height, color, minSize, defaultSize, maxSize] of [
             select.value = '5';
             select.dispatchEvent(new Event('change', { bubbles: true }));
             check(canvas.getAttribute('aria-label').includes('10:08'), '10:08 manual example');
+            var fit = document.querySelector('.td-fit').textContent.match(/^([0-9]+) pt fitted on this dial$/);
+            check(fit && Number(fit[1]) < 240, 'preview reports the actual fitted size');
             document.querySelector('.component-toggle input').click();
             check(Array.from(document.querySelectorAll('.component-slider:not(.hide)')).some(
               function (item) { return item.textContent.includes('Preview seconds'); }), 'manual seconds controls');
@@ -193,6 +195,12 @@ test('the standalone playground renders current settings and saves edits offline
         check(pointInput.value === '60', 'independent Round 2 size');
         set('sizeProfile', 'emery');
         check(pointInput.value === '64', 'restores PT2 size on device switch');
+        pointInput.value = '240';
+        pointInput.dispatchEvent(new Event('change', { bubbles: true }));
+        check(document.querySelector('[data-hero] figcaption').textContent.includes('pt fitted'),
+          'playground reports the fitted size');
+        pointInput.value = '64';
+        pointInput.dispatchEvent(new Event('change', { bubbles: true }));
         check(document.querySelectorAll('#pht-tickStyle option').length === 9, 'all current tick styles');
         check(document.querySelector('[data-palettes="hour"] button').textContent === 'Ember', 'hour accent presets');
         document.querySelector('[data-time="1439"]').click();

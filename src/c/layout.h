@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum { TD_DIGITS = 10, TD_MAX_TICKS = 12, TD_TRIG = 1024 };
+enum { TD_DIGITS = 10, TD_MAX_TICKS = 12, TD_TRIG = 1024, TD_LARGE_PRINT_THRESHOLD = 120 };
 enum { TD_STROKE, TD_DIAMOND, TD_SQUARE, TD_CROSS };
 typedef struct { int16_t x, y; } TdPoint;
 typedef struct { int16_t x, y, w, h; } TdRect;
@@ -27,6 +27,7 @@ typedef struct {
   TdMark hands[2], ticks[TD_MAX_TICKS];
   TdLabel labels[2];
   uint8_t tick_count, em;
+  bool digits_in_front;
 } TdLayout;
 
 TdPoint td_direction(int turn);

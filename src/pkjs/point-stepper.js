@@ -8,7 +8,7 @@ module.exports = {
     '<div class="td-point-value"><input id="typedial-digit-size" type="number" step="1" inputmode="numeric" ' +
     'aria-describedby="typedial-size-help" aria-label="Digit size in points"><span aria-hidden="true">pt</span></div>' +
     '<button type="button" data-step="1" aria-label="Increase digit size by 4 points">+</button>' +
-    '</div><p id="typedial-size-help">Digits scale down when the hands and reading order leave less room.</p></div>',
+    '</div><p id="typedial-size-help">Digits scale to fit. Above 120 pt, hands and dial marks can pass behind the digits.</p></div>',
   style: [
     '.td-point-stepper{padding:.7rem .75rem;}',
     '.td-point-stepper label{display:block;font-weight:600;}',

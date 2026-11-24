@@ -93,13 +93,16 @@ module.exports = function createGeometry(legacyScales) {
     var cross2 = (left + right - 2 * a[0]) * dy - (top + bottom - 2 * a[1]) * dx;
     return abs(cross2) <= (right - left) * abs(dy) + (bottom - top) * abs(dx);
   }
-  function unobstructed(input, out, box, gap) {
+  function insideDial(input, box, gap) {
     if (input.round) {
       var cx = trunc(input.width / 2), cy = trunc(input.height / 2);
       var xx = max(abs(box.x - cx), abs(box.x + box.w - 1 - cx));
       var yy = max(abs(box.y - cy), abs(box.y + box.h - 1 - cy));
       if (square(xx) + square(yy) > square(cx - gap)) return false;
     }
+    return true;
+  }
+  function clearOfMarks(out, box) {
     return !out.hands.some(function(mark) { return intersects(mark, box); }) &&
       !out.ticks.some(function(mark) { return intersects(mark, box); });
   }
@@ -153,7 +156,13 @@ module.exports = function createGeometry(legacyScales) {
           280 * square(max(0, projectionMin - projection)) +
           150 * square(sideError) + 800 * square(max(0, other - projection));
         var bin = result[trunc(y * regions / input.height) * regions + trunc(x * regions / input.width)];
-        if ((bin.length === perRegion && cost >= bin[perRegion - 1].cost) || !unobstructed(input, out, box, gap)) continue;
+        var cutoff = bin.length === perRegion ? bin[perRegion - 1].cost : Infinity;
+        if (cost >= cutoff || !insideDial(input, box, gap)) continue;
+        if (!clearOfMarks(out, box)) {
+          if (!out.digitsInFront) continue;
+          cost += 300000;
+          if (cost >= cutoff) continue;
+        }
         var next = { x: box.x, y: box.y, cost: cost };
         var position = 0;
         while (position < bin.length && cost >= bin[position].cost) ++position;
@@ -203,6 +212,7 @@ module.exports = function createGeometry(legacyScales) {
   function layout(input, metrics) {
     var dir = [direction(input.hour % 12 * 60 + input.minute), direction(input.minute * 12)];
     var out = marks(input, dir);
+    out.digitsInFront = input.size > 120;
     var dot = trunc((dir[0][0] * dir[1][0] + dir[0][1] * dir[1][1]) / 1024);
     var crowding = min(100, max(0, trunc((dot - 840) * 100 / 143)));
     var x = square(dir[0][0] + dir[1][0]), y = square(dir[0][1] + dir[1][1]);

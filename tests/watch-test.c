@@ -106,6 +106,7 @@ static void verify_layout(const TdLayoutInput *in, int font, TdLayout *result) {
   if (result->em < requested) ++reduced_count;
   if (result->em == td_scale(td_magnitude(in), 120)) ++fallback_count;
   assert(result->em <= requested);
+  assert(result->digits_in_front == (in->size > TD_LARGE_PRINT_THRESHOLD));
   unsigned int hour = in->use_24h ? in->hour : (in->hour + 11) % 12 + 1;
   assert(result->labels[0].count == (in->use_24h || hour >= 10 ? 2 : 1));
   assert(result->labels[0].digit[0] == (result->labels[0].count == 2 ? hour / 10 : hour));
@@ -136,8 +137,10 @@ static void verify_layout(const TdLayoutInput *in, int font, TdLayout *result) {
         assert(x * x + y * y <= radius * radius);
       }
     }
-    for (int j = 0; j < 2; ++j) assert(!td_mark_intersects(result->hands[j], box, 2));
-    for (int j = 0; j < result->tick_count; ++j) assert(!td_mark_intersects(result->ticks[j], box, 2));
+    if (!result->digits_in_front) {
+      for (int j = 0; j < 2; ++j) assert(!td_mark_intersects(result->hands[j], box, 2));
+      for (int j = 0; j < result->tick_count; ++j) assert(!td_mark_intersects(result->ticks[j], box, 2));
+    }
   }
 }
 
@@ -156,14 +159,15 @@ static void verify_accessible_sizes(void) {
       verify_layout(&in, 0, &legacy);
       in.size = requested;
       verify_layout(&in, 0, &points);
-      assert(!memcmp(&legacy, &points, sizeof(legacy)));
+      if (requested <= TD_LARGE_PRINT_THRESHOLD) assert(!memcmp(&legacy, &points, sizeof(legacy)));
+      else assert(points.em >= legacy.em);
       assert(points.em > previous);
       previous = points.em;
     }
     in.size = td_point_size(&in) - 1;
     TdLayout intermediate;
     verify_layout(&in, 0, &intermediate);
-    assert(intermediate.em == previous - 1);
+    assert(intermediate.em <= in.size && intermediate.em >= previous - 1);
     in.size = TD_LEGACY_SIZE_COUNT - 1;
     int old_limit = td_point_size(&in);
     in.hour = large_samples[p] / 60;
@@ -176,6 +180,24 @@ static void verify_accessible_sizes(void) {
     TdMask mask;
     for (int i = 0; i < 2; ++i)
       assert(td_make_mask(&mask, &fonts[0], &largest.labels[i]));
+  }
+}
+
+static void verify_large_print(void) {
+  static const int times[] = {0, 608, 720, 915, 1005, 1439};
+  TdLayoutInput in = profiles[0];
+  in.use_24h = true;
+  in.ticks = true;
+  in.tick_style = 3;
+  for (unsigned int i = 0; i < sizeof(times) / sizeof(times[0]); ++i) {
+    TdLayout normal, large;
+    in.hour = times[i] / 60;
+    in.minute = times[i] % 60;
+    in.size = 120;
+    assert(td_layout(&in, fonts[3].metric, &normal));
+    in.size = 240;
+    assert(td_layout(&in, fonts[3].metric, &large));
+    assert(large.em >= normal.em + 20);
   }
 }
 
@@ -360,6 +382,7 @@ int main(int argc, char *argv[]) {
   }
   clock_t start = clock();
   verify_settings();
+  verify_large_print();
   verify_accessible_sizes();
   verify_masks_and_seconds();
   if (argc != 2 || strcmp(argv[1], "--quick")) verify_minute_matrix();

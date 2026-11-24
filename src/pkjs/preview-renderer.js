@@ -111,12 +111,20 @@ module.exports = function createRenderer(geometry, colors, glyphs) {
       staticMark(layout.hands[1], colors.rgb(hand[1]));
       staticMark(layout.hands[0], colors.rgb(hand[0]));
       staticMark([[cx, cy], [cx, cy], 2 * geometry.pivotRadius(span), 0], bgRGB);
+      rows.forEach(function(label) {
+        label.forEach(function(row) {
+          for (var y = row[1] - 1; y <= row[1] + 1; ++y) {
+            var start = y * w + row[0] - 1, end = y * w + row[0] + row[2] + 1;
+            protectedPixels.fill(1, start, end);
+            if (layout.digitsInFront) {
+              for (var index = start; index < end; ++index) ink(base.data, index, bgRGB);
+            }
+          }
+        });
+      });
       rows.forEach(function(label, i) {
         var rgb = colors.rgb(digits[i]);
         label.forEach(function(row) {
-          for (var y = row[1] - 1; y <= row[1] + 1; ++y) {
-            protectedPixels.fill(1, y * w + row[0] - 1, y * w + row[0] + row[2] + 1);
-          }
           for (var x = row[0]; x < row[0] + row[2]; ++x) ink(base.data, row[1] * w + x, rgb);
         });
       });
@@ -137,6 +145,7 @@ module.exports = function createRenderer(geometry, colors, glyphs) {
     var description = profile.label + ', ' + labels.join(':');
     if (!use24) description += hour >= 12 ? ' PM' : ' AM';
     canvas.setAttribute('aria-label', description);
+    return layout.em;
   }
   return draw;
 };

@@ -27,7 +27,7 @@
 | Pebble 2 Duo | 144 × 168 monochrome | 27–240 pt | `flint` |
 | Pebble Round 2 | 260 × 260 color | 49–240 pt | `gabbro` |
 
-The default for new users is 60 pt. The selected size is an upper limit. TypeDial scales the digits down when the hands or dial marks leave less room.
+The default for new users is 60 pt. The selected size is an upper limit. TypeDial scales the digits down when needed and shows the fitted size in the preview. Above 120 pt, hands and dial marks can pass behind the digit outlines to make more room.
 
 ## Try the design playground
 

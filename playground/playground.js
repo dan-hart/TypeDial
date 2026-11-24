@@ -222,10 +222,11 @@
         const time = item.sampleTime ?? currentMinute();
         const second = preview.live && item.sampleTime === undefined ? liveMoment.getSeconds() : preview.second;
         const size = preview.sizes[item.profileKey] ?? settings.size;
-        item.draw(item.canvas, item.profile, { ...settings, format, size },
+        const fitted = item.draw(item.canvas, item.profile, { ...settings, format, size },
           [Math.floor(time / 60), time % 60, second], Number(preview.systemClock === '24'));
         item.caption.textContent = item.format !== undefined || item.sampleTime !== undefined ?
-          timeText(time, format) : item.profile.label;
+          timeText(time, format) : item.profile.label +
+          (fitted < geometry.pointSize(item.profile, size) ? ` · ${fitted} pt fitted` : '');
       }
     }
 

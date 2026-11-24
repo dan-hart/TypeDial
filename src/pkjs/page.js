@@ -143,7 +143,9 @@ module.exports = function configurePage() {
     controls.previewMinute.$manipulatorTarget[0].setAttribute('aria-valuetext',
       ('0' + time[0]).slice(-2) + ':' + ('0' + time[1]).slice(-2));
     var system = model === session.profile ? session.clock24 : null;
-    render(canvas, profiles[model], draft, time, system);
+    var fitted = render(canvas, profiles[model], draft, time, system);
+    var requested = geometry.pointSize(profiles[model], draft.size);
+    preview.querySelector('.td-fit').textContent = fitted < requested ? fitted + ' pt fitted on this dial' : '';
     var clock = draft.format === 2 || (draft.format === 0 && system !== 0) ?
       ('0' + time[0]).slice(-2) + ':' + ('0' + time[1]).slice(-2) :
       (time[0] % 12 || 12) + ':' + ('0' + time[1]).slice(-2) + (time[0] >= 12 ? ' PM' : ' AM');

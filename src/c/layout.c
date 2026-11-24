@@ -164,12 +164,16 @@ bool td_mark_intersects(TdMark mark, TdRect box, int padding) {
   return abs(cross2) <= (right - left) * abs(dy) + (bottom - top) * abs(dx);
 }
 
-static bool unobstructed(const TdLayoutInput *in, const TdLayout *out, TdRect box, int gap) {
+static bool inside_dial(const TdLayoutInput *in, TdRect box, int gap) {
   if (in->round) {
     int xx = max(abs(box.x - in->width / 2), abs(box.x + box.w - 1 - in->width / 2));
     int yy = max(abs(box.y - in->height / 2), abs(box.y + box.h - 1 - in->height / 2));
     if (square(xx) + square(yy) > square(in->width / 2 - gap)) return false;
   }
+  return true;
+}
+
+static bool clear_of_marks(const TdLayout *out, TdRect box) {
   for (int i = 0; i < 2; ++i)
     if (td_mark_intersects(out->hands[i], box, 2)) return false;
   for (int i = 0; i < out->tick_count; ++i)
@@ -238,7 +242,12 @@ static void scan(const TdLayoutInput *in, const TdLayout *out, const TdPoint dir
                      + 150 * square(side_error) + 800 * square(max(0, other - projection));
       int region = (y * REGIONS / in->height) * REGIONS + x * REGIONS / in->width;
       Candidate *bin = result + region * PER_REGION;
-      if (cost >= bin[PER_REGION - 1].cost || !unobstructed(in, out, box, gap)) continue;
+      if (cost >= bin[PER_REGION - 1].cost || !inside_dial(in, box, gap)) continue;
+      if (!clear_of_marks(out, box)) {
+        if (!out->digits_in_front) continue;
+        cost += 300000; // Prefer keeping the hands and ticks unobscured when space permits.
+        if (cost >= bin[PER_REGION - 1].cost) continue;
+      }
       Candidate next = {box.x, box.y, cost};
       for (int j = 0; j < PER_REGION; ++j) {
         if (next.cost >= bin[j].cost) continue;
@@ -298,6 +307,7 @@ bool td_layout(const TdLayoutInput *in, const TdGlyphMetric metrics[TD_DIGITS], 
   memset(out, 0, sizeof(*out));
   TdPoint dir[2];
   geometry(in, out, dir);
+  out->digits_in_front = in->size > TD_LARGE_PRINT_THRESHOLD;
   int dot = (dir[0].x * dir[1].x + dir[0].y * dir[1].y) / TD_TRIG;
   int crowding = min(100, max(0, (dot - 840) * 100 / 143));
   int32_t x = square(dir[0].x + dir[1].x), y = square(dir[0].y + dir[1].y);

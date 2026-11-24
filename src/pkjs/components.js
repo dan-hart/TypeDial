@@ -16,7 +16,7 @@ module.exports = [{
   manipulator: noValue
 }, {
   name: 'typedial-preview',
-  template: '<div class="td-preview"><div class="td-case"><canvas role="img"></canvas></div><div class="td-preview-info"><p class="td-model"></p><output class="td-time"></output><p class="td-status" role="status"></p></div></div>',
+  template: '<div class="td-preview"><div class="td-case"><canvas role="img"></canvas></div><div class="td-preview-info"><p class="td-model"></p><output class="td-time"></output><p class="td-fit"></p><p class="td-status" role="status"></p></div></div>',
   style: [
     '.td-preview-dock{position:sticky;bottom:0;z-index:1;background:#262823;border-top:1px solid #62655a;}',
     '.td-preview{display:flex;align-items:center;justify-content:center;gap:.75rem;padding:.45rem .75rem .25rem;}',
@@ -26,7 +26,7 @@ module.exports = [{
     '.td-case.round,.td-case.round canvas{border-radius:50%;}',
     '.td-preview canvas{display:block;max-width:min(112px,24vw,22vh);max-height:25vh;object-fit:contain;height:auto;image-rendering:pixelated;}',
     '.td-preview .td-model{margin:0 0 .2rem;color:#fff;}',
-    '.td-preview .td-time,.td-preview .td-status{color:#ccd0d6;font-size:.9rem;margin:0;}',
+    '.td-preview .td-time,.td-preview .td-fit,.td-preview .td-status{color:#ccd0d6;font-size:.9rem;margin:0;}',
     '.td-preview .td-time{display:block;font-variant-numeric:tabular-nums;}'
   ].join(''),
   manipulator: {

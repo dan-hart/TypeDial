@@ -605,13 +605,16 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     var cross2 = (left + right - 2 * a[0]) * dy - (top + bottom - 2 * a[1]) * dx;
     return abs(cross2) <= (right - left) * abs(dy) + (bottom - top) * abs(dx);
   }
-  function unobstructed(input, out, box, gap) {
+  function insideDial(input, box, gap) {
     if (input.round) {
       var cx = trunc(input.width / 2), cy = trunc(input.height / 2);
       var xx = max(abs(box.x - cx), abs(box.x + box.w - 1 - cx));
       var yy = max(abs(box.y - cy), abs(box.y + box.h - 1 - cy));
       if (square(xx) + square(yy) > square(cx - gap)) return false;
     }
+    return true;
+  }
+  function clearOfMarks(out, box) {
     return !out.hands.some(function(mark) { return intersects(mark, box); }) &&
       !out.ticks.some(function(mark) { return intersects(mark, box); });
   }
@@ -665,7 +668,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           280 * square(max(0, projectionMin - projection)) +
           150 * square(sideError) + 800 * square(max(0, other - projection));
         var bin = result[trunc(y * regions / input.height) * regions + trunc(x * regions / input.width)];
-        if ((bin.length === perRegion && cost >= bin[perRegion - 1].cost) || !unobstructed(input, out, box, gap)) continue;
+        var cutoff = bin.length === perRegion ? bin[perRegion - 1].cost : Infinity;
+        if (cost >= cutoff || !insideDial(input, box, gap)) continue;
+        if (!clearOfMarks(out, box)) {
+          if (!out.digitsInFront) continue;
+          cost += 300000;
+          if (cost >= cutoff) continue;
+        }
         var next = { x: box.x, y: box.y, cost: cost };
         var position = 0;
         while (position < bin.length && cost >= bin[position].cost) ++position;
@@ -715,6 +724,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   function layout(input, metrics) {
     var dir = [direction(input.hour % 12 * 60 + input.minute), direction(input.minute * 12)];
     var out = marks(input, dir);
+    out.digitsInFront = input.size > 120;
     var dot = trunc((dir[0][0] * dir[1][0] + dir[0][1] * dir[1][1]) / 1024);
     var crowding = min(100, max(0, trunc((dot - 840) * 100 / 143)));
     var x = square(dir[0][0] + dir[1][0]), y = square(dir[0][1] + dir[1][1]);
@@ -851,12 +861,20 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       staticMark(layout.hands[1], colors.rgb(hand[1]));
       staticMark(layout.hands[0], colors.rgb(hand[0]));
       staticMark([[cx, cy], [cx, cy], 2 * geometry.pivotRadius(span), 0], bgRGB);
+      rows.forEach(function(label) {
+        label.forEach(function(row) {
+          for (var y = row[1] - 1; y <= row[1] + 1; ++y) {
+            var start = y * w + row[0] - 1, end = y * w + row[0] + row[2] + 1;
+            protectedPixels.fill(1, start, end);
+            if (layout.digitsInFront) {
+              for (var index = start; index < end; ++index) ink(base.data, index, bgRGB);
+            }
+          }
+        });
+      });
       rows.forEach(function(label, i) {
         var rgb = colors.rgb(digits[i]);
         label.forEach(function(row) {
-          for (var y = row[1] - 1; y <= row[1] + 1; ++y) {
-            protectedPixels.fill(1, y * w + row[0] - 1, y * w + row[0] + row[2] + 1);
-          }
           for (var x = row[0]; x < row[0] + row[2]; ++x) ink(base.data, row[1] * w + x, rgb);
         });
       });
@@ -877,10 +895,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     var description = profile.label + ', ' + labels.join(':');
     if (!use24) description += hour >= 12 ? ' PM' : ' AM';
     canvas.setAttribute('aria-label', description);
+    return layout.em;
   }
   return draw;
 };
-    const pointStepperTemplate = "<div class=\"component td-point-stepper\"><label for=\"typedial-digit-size\">Digit size</label><div class=\"td-point-controls\"><button type=\"button\" data-step=\"-1\" aria-label=\"Decrease digit size by 4 points\">−</button><div class=\"td-point-value\"><input id=\"typedial-digit-size\" type=\"number\" step=\"1\" inputmode=\"numeric\" aria-describedby=\"typedial-size-help\" aria-label=\"Digit size in points\"><span aria-hidden=\"true\">pt</span></div><button type=\"button\" data-step=\"1\" aria-label=\"Increase digit size by 4 points\">+</button></div><p id=\"typedial-size-help\">Digits scale down when the hands and reading order leave less room.</p></div>";
+    const pointStepperTemplate = "<div class=\"component td-point-stepper\"><label for=\"typedial-digit-size\">Digit size</label><div class=\"td-point-controls\"><button type=\"button\" data-step=\"-1\" aria-label=\"Decrease digit size by 4 points\">−</button><div class=\"td-point-value\"><input id=\"typedial-digit-size\" type=\"number\" step=\"1\" inputmode=\"numeric\" aria-describedby=\"typedial-size-help\" aria-label=\"Digit size in points\"><span aria-hidden=\"true\">pt</span></div><button type=\"button\" data-step=\"1\" aria-label=\"Increase digit size by 4 points\">+</button></div><p id=\"typedial-size-help\">Digits scale to fit. Above 120 pt, hands and dial marks can pass behind the digits.</p></div>";
     const mountPointStepper = function mountPointStepper(root, onChange) {
     var input = root.querySelector('input');
     var smaller = root.querySelector('[data-step="-1"]');
@@ -1137,10 +1156,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         const time = item.sampleTime ?? currentMinute();
         const second = preview.live && item.sampleTime === undefined ? liveMoment.getSeconds() : preview.second;
         const size = preview.sizes[item.profileKey] ?? settings.size;
-        item.draw(item.canvas, item.profile, { ...settings, format, size },
+        const fitted = item.draw(item.canvas, item.profile, { ...settings, format, size },
           [Math.floor(time / 60), time % 60, second], Number(preview.systemClock === '24'));
         item.caption.textContent = item.format !== undefined || item.sampleTime !== undefined ?
-          timeText(time, format) : item.profile.label;
+          timeText(time, format) : item.profile.label +
+          (fitted < geometry.pointSize(item.profile, size) ? ` · ${fitted} pt fitted` : '');
       }
     }
 
