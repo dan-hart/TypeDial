@@ -11,6 +11,9 @@ function integer(value) {
 function valid(settings) {
   return Array.isArray(settings) && settings.length === contract.keys.length &&
     settings[0] === contract.version && contract.max.every(function(maximum, i) {
+      var value = settings[i];
+      if (contract.keys[i] === 'size' && value >= contract.legacyDigitScales.length &&
+          value < contract.minPointSize) return false;
       return integer(settings[i]) && settings[i] >= 0 && settings[i] <= maximum;
     });
 }

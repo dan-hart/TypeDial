@@ -133,3 +133,16 @@ test('keeps the pending draft and the last valid watch snapshot on a persistence
   assert.deepEqual(records['watch:watch-a'].applied, defaults);
   assert.deepEqual(records['watch:watch-a'].pending, changed);
 });
+
+test('persists direct point sizes alongside older size indexes', () => {
+  const h = harness();
+  const session = h.phone.open();
+  const size = contract.keys.indexOf('size');
+  const settings = defaults.slice();
+  settings[size] = contract.minPointSize - 1;
+  assert.equal(h.phone.save(session, 'emery', settings), false);
+  settings[size] = 73;
+  assert.equal(h.phone.save(session, 'emery', settings), true);
+  const restarted = harness(h.cache);
+  assert.equal(restarted.phone.open().settings[size], 73);
+});

@@ -6,14 +6,15 @@ module.exports = function configurePage() {
   var data = clay.meta.userData;
   var session = data.session, profiles = data.profiles, contract = data.contract;
   var colors = data.createColors();
-  var render = data.createRenderer(data.createGeometry(contract.digitSizes), colors, data.glyphs);
+  var geometry = data.createGeometry(contract.legacyDigitScales);
+  var render = data.createRenderer(geometry, colors, data.glyphs);
   var controls = {}, draft, model = session.profile, timer, updating;
   var presets = [];
   var colorKeys = ['bg', 'hour', 'minute', 'secondColor', 'tickColor'];
   var roleLabels = ['Background', 'Hour hand', 'Minute hand', 'Seconds hand', 'Tick marks'];
   var names = contract.names.concat(['Tangerine', 'Black', 'Automatic contrast', 'Match hour hand', 'Match minute hand']);
   var draftByModel = {};
-  var preview, canvas, colorsPanel, swatchGroups, swatchRole;
+  var preview, canvas, colorsPanel, swatchGroups, swatchRole, updatePointStepper;
   var doc = document;
 
   function element(tag, text, className) {
@@ -51,6 +52,7 @@ module.exports = function configurePage() {
   function sync() {
     updating = true;
     contract.keys.slice(1).forEach(function(key) {
+      if (key === 'size') return;
       var value = colorKeys.indexOf(key) < 0 ? draft[key] : colors.rgb(resolved(draft[key], key, draft));
       controls[key].set(value);
     });
@@ -155,6 +157,8 @@ module.exports = function configurePage() {
 
   function updatePage() {
     var profile = profiles[model];
+    updatePointStepper(geometry.pointSize(profile, draft.size), geometry.pointSize(profile, 0),
+      geometry.pointSize(profile, contract.legacyDigitScales.length - 1));
     preview.querySelector('.td-case').classList.toggle('round', profile.round);
     visible('mono', !profile.color);
     visible('palette', profile.color);
@@ -190,6 +194,10 @@ module.exports = function configurePage() {
 
   clay.on(clay.EVENTS.AFTER_BUILD, function() {
     clay.getAllItems().forEach(function(item) { if (item.id) controls[item.id] = item; });
+    updatePointStepper = data.mountPointStepper(root('size'), function(value) {
+      draft.size = value;
+      updateTime();
+    });
     preview = root('preview');
     preview.parentNode.classList.add('td-preview-dock');
     canvas = preview.querySelector('canvas');
@@ -224,6 +232,7 @@ module.exports = function configurePage() {
     controls.previewMinute.on('change input', updateTime);
     controls.previewSecond.on('change input', updateTime);
     contract.keys.slice(1).forEach(function(key) {
+      if (key === 'size') return;
       controls[key].on('change', function() {
         if (updating) return;
         var value = controls[key].get();

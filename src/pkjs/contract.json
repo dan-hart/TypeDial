@@ -44,7 +44,7 @@
     1,
     2,
     1,
-    9,
+    120,
     1,
     4,
     1,
@@ -192,54 +192,45 @@
       21
     ]
   ],
-  "digitSizes": [
+  "minPointSize": 27,
+  "legacyDigitScales": [
     [
-      "Compact",
       190,
       190
     ],
     [
-      "Medium",
       225,
       225
     ],
     [
-      "Large",
       266,
       266
     ],
     [
-      "Extra large",
       305,
       305
     ],
     [
-      "Maximum",
       350,
       350
     ],
     [
-      "Maximum +1",
       400,
       365
     ],
     [
-      "Maximum +2",
       450,
       380
     ],
     [
-      "Maximum +3",
       500,
       395
     ],
     [
-      "Maximum +4",
       550,
       410
     ],
     [
-      "Maximum +5",
       600,
       440
     ]

@@ -6,13 +6,13 @@ const assert = require('node:assert/strict');
 const profiles = require('../src/pkjs/profiles');
 const glyphs = require('../src/pkjs/glyphs.json');
 const contract = require('../src/pkjs/contract.json');
-const geometry = require('../src/pkjs/preview-geometry')(contract.digitSizes);
+const geometry = require('../src/pkjs/preview-geometry')(contract.legacyDigitScales);
 const colors = require('../src/pkjs/colors')();
 const fixture = process.env.TYPEDIAL_GEOMETRY_FIXTURE || __dirname + '/settings-geometry.csv';
 
 test('preview matches the native digit boxes and effective sizes', () => {
   const rows = fs.readFileSync(fixture, 'utf8').trim().split('\n').slice(1);
-  assert.ok(rows.length >= 180);
+  assert.ok(rows.length >= 234);
   for (const row of rows) {
     const [profile, hour, minute, format, font, size, placement, horizontal, vertical,
       weight, ticks, tickStyle, em, ...positions] = row.split(',').map(Number);

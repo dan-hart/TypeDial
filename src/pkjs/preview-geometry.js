@@ -1,7 +1,7 @@
 'use strict';
 
 // Integer port of src/c/layout.c. Keep truncation at the same operations as in C.
-module.exports = function createGeometry(sizes) {
+module.exports = function createGeometry(legacyScales) {
   var square = function(value) { return value * value; };
   var trunc = function(value) { return value < 0 ? Math.ceil(value) : Math.floor(value); };
   var abs = Math.abs, min = Math.min, max = Math.max;
@@ -31,6 +31,12 @@ module.exports = function createGeometry(sizes) {
     var product = value * permille;
     return trunc((product + (product < 0 ? -500 : 500)) / 1000);
   }
+  function pointSize(profile, value) {
+    var span = min(profile.width, profile.height), column = profile.round ? 1 : 0;
+    if (value < legacyScales.length) return scale(span, legacyScales[value][column]);
+    return min(scale(span, legacyScales[legacyScales.length - 1][column]), max(scale(span, legacyScales[0][column]), value));
+  }
+
   function scaleGlyph(size, em) { return trunc((size * em + 32) / 64); }
   function sine(turn) {
     turn = (turn % 720 + 720) % 720;
@@ -203,8 +209,7 @@ module.exports = function createGeometry(sizes) {
     var xshare = crowding ? trunc(100 * y / (x + y)) : 50;
     var span = min(input.width, input.height), gap = max(4, scale(span, 27));
     var hour = input.use24 ? input.hour : (input.hour + 11) % 12 + 1;
-    var selectedSize = sizes[input.size][input.round ? 2 : 1];
-    for (var em = scale(span, selectedSize); em >= scale(span, 120); --em) {
+    for (var em = pointSize(input, input.size); em >= scale(span, 120); --em) {
       out.labels = [labelMetrics(hour, input.use24, metrics, em), labelMetrics(input.minute, true, metrics, em)];
       var a = out.labels[0].box, b = out.labels[1].box;
       if (max(a.w, b.w) + 2 * gap > input.width || max(a.h, b.h) + 2 * gap > input.height ||
@@ -219,5 +224,5 @@ module.exports = function createGeometry(sizes) {
     out.em = 0;
     return out;
   }
-  return { layout: layout, seconds: seconds, pivotRadius: function(span) { return max(1, scale(span, 13)); } };
+  return { layout: layout, pointSize: pointSize, seconds: seconds, pivotRadius: function(span) { return max(1, scale(span, 13)); } };
 };

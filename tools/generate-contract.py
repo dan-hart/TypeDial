@@ -18,11 +18,11 @@ def generate(contract):
     assert len(fields) == len(defaults) == len(limits) <= 255
     assert fields[0] == "schema" and defaults[0] == limits[0] == contract["version"]
     assert all(0 <= default <= limit <= 255 for default, limit in zip(defaults, limits))
-    scale_columns = list(zip(*contract["digitSizes"]))[1:]
+    scale_columns = list(zip(*contract["legacyDigitScales"]))
     sizes, round_sizes = scale_columns
     for scales in scale_columns:
-        assert len(scales) == limits[fields.index("size")] + 1
         assert all(a < b for a, b in zip(scales, scales[1:]))
+    assert len(sizes) <= contract["minPointSize"] <= limits[fields.index("size")]
     indices = "\n".join(f"  {c_name(key)} = {index}," for index, key in enumerate(fields))
     default_values = ", ".join(map(str, defaults))
     maximum_values = ", ".join(map(str, limits))
@@ -35,6 +35,8 @@ def generate(contract):
 enum {{
   TD_VERSION = {contract["version"]},
   TD_SETTINGS_LEN = {len(fields)},
+  TD_LEGACY_SIZE_COUNT = {len(sizes)},
+  TD_MIN_POINT_SIZE = {contract["minPointSize"]},
 }};
 
 enum {{
@@ -43,8 +45,8 @@ enum {{
 
 static const uint8_t TD_DEFAULTS[TD_SETTINGS_LEN] = {{{default_values}}};
 static const uint8_t TD_MAX[TD_SETTINGS_LEN] = {{{maximum_values}}};
-static const uint16_t TD_DIGIT_SIZES[] = {{{", ".join(map(str, sizes))}}};
-static const uint16_t TD_ROUND_DIGIT_SIZES[] = {{{", ".join(map(str, round_sizes))}}};
+static const uint16_t TD_LEGACY_DIGIT_SCALES[] = {{{", ".join(map(str, sizes))}}};
+static const uint16_t TD_LEGACY_ROUND_DIGIT_SCALES[] = {{{", ".join(map(str, round_sizes))}}};
 
 #endif
 """

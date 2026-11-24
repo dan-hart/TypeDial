@@ -3,11 +3,12 @@
     const byId = id => find('#pht-' + id);
     const storageKey = 'typedial-playground.settings';
     const settings = Object.fromEntries(contract.keys.map((key, index) => [key, contract.defaults[index]]));
-    const preview = { time: 1296, second: 42, live: false, compare: true, systemClock: '24', swatchRole: 'hour' };
+    const preview = { time: 1296, second: 42, live: false, compare: true, systemClock: '24', swatchRole: 'hour',
+      sizeProfile: 'emery', sizes: {} };
     const roleKeys = ['bg', 'hour', 'minute', 'secondColor', 'tickColor'];
     const palette = contract.names.map((name, index) => index);
     const names = contract.names.concat(['Tangerine', 'Black', 'Automatic contrast', 'Match hour hand', 'Match minute hand']);
-    const devices = Object.values(profiles).filter(profile => profile.supported);
+    const devices = Object.entries(profiles).filter(([, profile]) => profile.supported);
     const pad = value => String(value).padStart(2, '0');
     const fontSamples = ['PHTMono', 'PHTMonoXB', 'PHTNext', 'PHTItalic', 'PHTOriginal'];
     const fields = new Map();
@@ -36,6 +37,12 @@
       return (key === 'secondColor' || key === 'tickColor' ? [66, 67, 68, 64] : [64]).concat(palette);
     }
 
+    function validSize(value) {
+      return Number.isInteger(value) && value >= 0 &&
+        (value < contract.legacyDigitScales.length ||
+         (value >= contract.minPointSize && value <= contract.max[contract.keys.indexOf('size')]));
+    }
+
     function restore() {
       try {
         const saved = JSON.parse(localStorage.getItem(storageKey));
@@ -43,6 +50,10 @@
         for (const control of controls) {
           const key = control.id;
           const value = saved.settings?.[key];
+          if (key === 'size') {
+            if (validSize(value)) settings.size = value;
+            continue;
+          }
           const allowed = control.options ? control.options.map(option => Number(option.value)) :
             control.type === 'color' ? choices(key) : [0, 1];
           if (allowed.includes(value)) settings[key] = value;
@@ -55,6 +66,11 @@
           if (typeof saved.preview?.[key] === 'boolean') preview[key] = saved.preview[key];
         }
         if (['12', '24'].includes(saved.preview?.systemClock)) preview.systemClock = saved.preview.systemClock;
+        if (Object.hasOwn(profiles, saved.preview?.sizeProfile)) preview.sizeProfile = saved.preview.sizeProfile;
+        for (const key of Object.keys(profiles)) {
+          const size = saved.preview?.sizes?.[key];
+          if (validSize(size)) preview.sizes[key] = size;
+        }
         if (roleKeys.includes(saved.preview?.swatchRole)) preview.swatchRole = saved.preview.swatchRole;
       } catch {
         storageAvailable = false;
@@ -78,6 +94,7 @@
 
     for (const control of controls) {
       const key = control.id;
+      if (key === 'size') continue;
       if (key === 'font') {
         for (const option of control.options) {
           const value = Number(option.value);
@@ -121,6 +138,22 @@
       fields.set(key, input);
     }
 
+    const sizeHost = byId('size');
+    const sizeProfile = byId('sizeProfile');
+    for (const [key, profile] of Object.entries(profiles)) {
+      if (profile.supported) sizeProfile.add(new Option(profile.label, key));
+    }
+    sizeHost.innerHTML = pointStepperTemplate;
+    const updatePointStepper = mountPointStepper(sizeHost, value => {
+      preview.sizes[preview.sizeProfile] = value;
+      renderFaces();
+      save();
+    });
+    sizeProfile.addEventListener('change', () => {
+      preview.sizeProfile = sizeProfile.value;
+      changed();
+    });
+
     function swatch(value) {
       const node = element('span', '', 'swatch');
       node.setAttribute('aria-hidden', 'true');
@@ -147,7 +180,7 @@
       }
     }
 
-    function face(target, profile, format, sampleTime) {
+    function face(target, [profileKey, profile], format, sampleTime) {
       const figure = element('figure');
       const frame = element('div', '', profile.round ? 'case round' : 'case');
       const canvas = element('canvas');
@@ -156,18 +189,19 @@
       frame.append(canvas);
       figure.append(frame, caption);
       target.append(figure);
-      return { figure, canvas, caption, profile, format, sampleTime, draw: createRenderer(geometry, colors, glyphs) };
+      return { figure, canvas, caption, profileKey, profile, format, sampleTime, draw: createRenderer(geometry, colors, glyphs) };
     }
 
     const hero = devices.map(profile => face(find('[data-hero]'), profile));
     const vignettes = [608, 915, 0].map(time => face(find('[data-vignettes]'), devices[0], undefined, time));
-    const gallery = devices.flatMap(profile => {
+    const gallery = devices.flatMap(device => {
+      const [, profile] = device;
       const panel = element('article', '', 'model');
       const row = element('div', '', 'screen-row');
       panel.append(element('h3', profile.label),
         element('p', `${profile.width} × ${profile.height} · ${profile.color ? 'Color' : 'B/W'}`, 'quiet'), row);
       find('[data-gallery]').append(panel);
-      return [face(row, profile, 1), face(row, profile, 2)];
+      return [face(row, device, 1), face(row, device, 2)];
     });
 
     const use24 = format => format === 2 || (format === 0 && preview.systemClock === '24');
@@ -187,7 +221,8 @@
         if (item.figure.hidden) continue;
         const time = item.sampleTime ?? currentMinute();
         const second = preview.live && item.sampleTime === undefined ? liveMoment.getSeconds() : preview.second;
-        item.draw(item.canvas, item.profile, { ...settings, format },
+        const size = preview.sizes[item.profileKey] ?? settings.size;
+        item.draw(item.canvas, item.profile, { ...settings, format, size },
           [Math.floor(time / 60), time % 60, second], Number(preview.systemClock === '24'));
         item.caption.textContent = item.format !== undefined || item.sampleTime !== undefined ?
           timeText(time, format) : item.profile.label;
@@ -265,6 +300,10 @@
           input.nextElementSibling.style.backgroundColor = colors.hex(resolved(settings[key]));
         } else input.value = settings[key];
       }
+      sizeProfile.value = preview.sizeProfile;
+      const profile = profiles[preview.sizeProfile];
+      updatePointStepper(geometry.pointSize(profile, preview.sizes[preview.sizeProfile] ?? settings.size),
+        geometry.pointSize(profile, 0), geometry.pointSize(profile, contract.legacyDigitScales.length - 1));
       byId('system-control').hidden = settings.format !== 0;
       byId('systemClock').value = preview.systemClock;
       byId('live').checked = preview.live;

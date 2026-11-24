@@ -37,6 +37,7 @@ int td_pivot_radius(int span);
 bool td_mark_covers(TdMark mark, int x, int y);
 void td_mark_span(TdMark mark, int width, int y, int *left, int *right);
 bool td_mark_intersects(TdMark mark, TdRect box, int padding);
+int td_point_size(const TdLayoutInput *in);
 bool td_layout(const TdLayoutInput *in, const TdGlyphMetric metrics[TD_DIGITS], TdLayout *out);
 uint8_t td_seconds(int width, int height, uint8_t style, uint8_t second, TdMark marks[2]);
 

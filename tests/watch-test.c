@@ -60,6 +60,11 @@ static void verify_settings(void) {
     loaded[i] = TD_MAX[i] + 1;
     assert(!td_settings_valid(loaded, TD_SETTINGS_LEN));
   }
+  memcpy(loaded, TD_DEFAULTS, sizeof(loaded));
+  loaded[TD_SIZE] = TD_MIN_POINT_SIZE - 1;
+  assert(!td_settings_valid(loaded, sizeof(loaded)));
+  loaded[TD_SIZE] = TD_MIN_POINT_SIZE;
+  assert(td_settings_valid(loaded, sizeof(loaded)));
   assert(td_settings_newer(50, 49) && td_settings_newer(0, UINT32_MAX));
   assert(!td_settings_newer(49, 50) && !td_settings_newer(50, 50));
   TdColors default_inks = td_colors(TD_DEFAULTS, true);
@@ -96,8 +101,7 @@ static void verify_layout(const TdLayoutInput *in, int font, TdLayout *result) {
     exit(1);
   }
   ++layout_count;
-  const uint16_t *sizes = in->round ? TD_ROUND_DIGIT_SIZES : TD_DIGIT_SIZES;
-  int requested = td_scale(td_magnitude(in), sizes[in->size]);
+  int requested = td_point_size(in);
   if (result->em < requested) ++reduced_count;
   if (result->em == td_scale(td_magnitude(in), 120)) ++fallback_count;
   assert(result->em <= requested);
@@ -143,13 +147,21 @@ static void verify_accessible_sizes(void) {
     in.hour = in.round ? 3 : 2;
     in.minute = in.round ? 15 : 45;
     int previous = 0;
-    for (int size = 4; size <= TD_MAX[TD_SIZE]; ++size) {
-      TdLayout layout;
+    for (int size = 0; size < TD_LEGACY_SIZE_COUNT; ++size) {
+      TdLayout legacy, points;
       in.size = size;
-      verify_layout(&in, 0, &layout);
-      assert(layout.em > previous);
-      previous = layout.em;
+      int requested = td_point_size(&in);
+      verify_layout(&in, 0, &legacy);
+      in.size = requested;
+      verify_layout(&in, 0, &points);
+      assert(!memcmp(&legacy, &points, sizeof(legacy)));
+      assert(points.em > previous);
+      previous = points.em;
     }
+    in.size = td_point_size(&in) - 1;
+    TdLayout intermediate;
+    verify_layout(&in, 0, &intermediate);
+    assert(intermediate.em == previous - 1);
   }
 }
 
@@ -224,8 +236,8 @@ static void verify_masks_and_seconds(void) {
     TdLayoutInput in = profiles[p];
     in.use_24h = true;
     for (int font = 0; font < 5; ++font) {
-      for (int size = 0; size <= TD_MAX[TD_SIZE]; ++size) {
-        in.size = size;
+      for (int size = 0; size <= TD_LEGACY_SIZE_COUNT; ++size) {
+        in.size = size == TD_LEGACY_SIZE_COUNT ? TD_MAX[TD_SIZE] : size;
         for (int t = 0; t < (int)(sizeof(times) / sizeof(times[0])); ++t) {
           in.hour = times[t] / 60;
           in.minute = times[t] % 60;
@@ -302,13 +314,14 @@ static void fixtures(void) {
   static const int times[] = {0, 608, 720, 915, 1296, 1439};
   for (int p = 0; p < 3; ++p)
     for (int t = 0; t < (int)(sizeof(times) / sizeof(times[0])); ++t)
-      for (int variant = 0; variant <= TD_MAX[TD_SIZE]; ++variant) {
+      for (int variant = 0; variant < TD_LEGACY_SIZE_COUNT + 3; ++variant) {
         TdLayoutInput in = profiles[p];
         int font = variant % 5;
         in.hour = times[t] / 60;
         in.minute = times[t] % 60;
         in.use_24h = !(variant % 2);
-        in.size = variant;
+        static const uint8_t point_sizes[] = {TD_MIN_POINT_SIZE, 63, 120};
+        in.size = variant < TD_LEGACY_SIZE_COUNT ? variant : point_sizes[variant - TD_LEGACY_SIZE_COUNT];
         in.placement = variant % 2;
         in.horizontal = t % 2;
         in.vertical = (t / 2) % 2;

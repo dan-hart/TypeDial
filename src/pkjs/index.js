@@ -11,6 +11,7 @@ var createColors = require('./colors');
 var createGeometry = require('./preview-geometry');
 var createRenderer = require('./preview-renderer');
 var page = require('./page');
+var pointStepper = require('./point-stepper');
 
 var phone = createPhone(Pebble, localStorage, {
   seed: function() { return Math.floor(Math.random() * 0x7ffffffe); },
@@ -38,7 +39,8 @@ Pebble.addEventListener('showConfiguration', function() {
         hasModelDraft: session.hasModelDraft
       },
       profiles: profiles, contract: contract, glyphs: glyphs,
-      createGeometry: createGeometry, createRenderer: createRenderer, createColors: createColors
+      createGeometry: createGeometry, createRenderer: createRenderer, createColors: createColors,
+      mountPointStepper: pointStepper.mount
     }
   };
   var url = clay.generateUrl();

@@ -6,6 +6,8 @@ bool td_settings_valid(const uint8_t *settings, size_t length) {
   if (length != TD_SETTINGS_LEN || settings[TD_SCHEMA] != TD_VERSION) return false;
   for (int i = 1; i < TD_SETTINGS_LEN; ++i)
     if (settings[i] > TD_MAX[i]) return false;
+  // Accept old size indexes and direct point sizes in the existing payload.
+  if (settings[TD_SIZE] >= TD_LEGACY_SIZE_COUNT && settings[TD_SIZE] < TD_MIN_POINT_SIZE) return false;
   // Legacy background code 65 remains valid only for the background.
   return settings[TD_SECOND_COLOR] != 65 && settings[TD_TICK_COLOR] != 65;
 }

@@ -64,8 +64,9 @@ test('generates offline Clay URLs for phones and the emulator and keeps identity
 
 const chrome = process.env.TYPEDIAL_CHROME;
 
-for (const [platform, width, height, color] of [
-  ['emery', 200, 228, true], ['flint', 144, 168, false], ['gabbro', 260, 260, true]
+for (const [platform, width, height, color, minSize, defaultSize, maxSize] of [
+  ['emery', 200, 228, true, 38, 61, 120], ['flint', 144, 168, false, 27, 44, 86],
+  ['gabbro', 260, 260, true, 49, 79, 114]
 ]) {
   test('offline Clay page renders ' + platform + ' and submits the visible draft', { skip: !chrome }, () => {
     const mobile = platform === 'flint' ? 'android' : 'ios';
@@ -94,11 +95,22 @@ for (const [platform, width, height, color] of [
               var bounds = dock.getBoundingClientRect();
               check(bounds.top >= 0 && bounds.bottom <= window.innerHeight + 1, 'visible preview while scrolling');
             }
-            var size = Array.from(document.querySelectorAll('.component-select')).find(
-              function (item) { return item.textContent.includes('Digit size'); }).querySelector('select');
-            check(size.options.length === 10 && size.options[9].textContent === 'Maximum +5', 'five larger sizes');
-            size.value = '9';
-            size.dispatchEvent(new Event('change', { bubbles: true }));
+            var stepper = document.querySelector('.td-point-stepper');
+            var size = stepper.querySelector('input');
+            var minus = stepper.querySelector('[data-step="-1"]');
+            var plus = stepper.querySelector('[data-step="1"]');
+            var setSize = function (value) {
+              size.value = value;
+              size.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+            check(Number(size.value) === ${defaultSize} && Number(size.min) === ${minSize} &&
+              Number(size.max) === ${maxSize}, 'legacy size and device point range');
+            plus.click();
+            check(Number(size.value) === ${defaultSize} + 1, 'increase by one point');
+            minus.click();
+            check(Number(size.value) === ${defaultSize}, 'decrease by one point');
+            setSize(999);
+            check(Number(size.value) === ${maxSize} && plus.disabled, 'upper limit');
             var preview = Array.from(document.querySelectorAll('.component-select')).find(
               function (item) { return item.textContent.includes('Preview time'); });
             var select = preview.querySelector('select');
@@ -110,13 +122,12 @@ for (const [platform, width, height, color] of [
               function (item) { return item.textContent.includes('Preview seconds'); }), 'manual seconds controls');
             if (${color}) {
               document.querySelector('.td-hour button').click();
-              size.value = '0';
-              size.dispatchEvent(new Event('change', { bubbles: true }));
+              setSize(${minSize});
+              check(minus.disabled, 'lower limit');
               var pixels = canvas.getContext('2d').getImageData(0, 0, 20, 20).data;
               check(pixels.every(function (channel, i) { return channel === (i % 4 === 3 ? 255 : 0); }),
                 'Ember uses a solid black background');
-              size.value = '9';
-              size.dispatchEvent(new Event('change', { bubbles: true }));
+              setSize(${maxSize});
               var picker = document.querySelector('.component-color:not(.hide) .color-box[data-value="16733440"]');
               check(!!picker, 'native palette includes orange');
               picker.click();
@@ -126,7 +137,7 @@ for (const [platform, width, height, color] of [
               check(details.textContent.includes('Dark gray'), 'named background swatches');
             }
             var payload = document.querySelector('.td-preview').typedialSettings();
-            check(payload.profile === '${platform}' && payload.settings[1] === 2 && payload.settings[3] === 9 && payload.settings[8] === 1,
+            check(payload.profile === '${platform}' && payload.settings[1] === 2 && payload.settings[3] === ${maxSize} && payload.settings[8] === 1,
               'correct save data');
             check(typeof form.querySelector('[type=submit]') !== 'undefined' &&
               !!form.querySelector('[type=submit]'), 'native Clay save button');
@@ -166,7 +177,18 @@ test('the standalone playground renders current settings and saves edits offline
         check([...canvases].map(canvas => canvas.width + 'x' + canvas.height).join(',') === '200x228,144x168,260x260',
           'all supported display dimensions');
         check(document.querySelectorAll('[data-gallery] canvas').length === 6, 'side-by-side formats');
-        check(document.querySelectorAll('#pht-size option').length === 10, 'all current digit sizes');
+        const pointInput = document.getElementById('typedial-digit-size');
+        const increase = document.querySelector('#pht-size [data-step="1"]');
+        check(pointInput.value === '61', 'legacy PT2 point size');
+        increase.click();
+        check(pointInput.value === '62', 'playground increases in single points');
+        set('sizeProfile', 'flint');
+        check(pointInput.value === '44', 'independent Duo size');
+        increase.click();
+        set('sizeProfile', 'gabbro');
+        check(pointInput.value === '79', 'independent Round 2 size');
+        set('sizeProfile', 'emery');
+        check(pointInput.value === '62', 'restores PT2 size on device switch');
         check(document.querySelectorAll('#pht-tickStyle option').length === 9, 'all current tick styles');
         check(document.querySelector('[data-palettes="hour"] button').textContent === 'Ember', 'hour accent presets');
         document.querySelector('[data-time="1439"]').click();
@@ -174,10 +196,9 @@ test('the standalone playground renders current settings and saves edits offline
         set('format', '0');
         set('systemClock', '12');
         check(canvases[0].getAttribute('aria-label').includes('11:59 PM'), 'system clock example');
-        set('size', '9');
         document.querySelector('[data-palettes="hour"] button').click();
         const saved = JSON.parse(localStorage.getItem('typedial-playground.settings'));
-        check(saved.settings.size === 9 && saved.settings.hour === 64 && saved.settings.bg === 0 &&
+        check(saved.preview.sizes.emery === 62 && saved.preview.sizes.flint === 45 && saved.settings.hour === 64 && saved.settings.bg === 0 &&
           saved.preview.time === 1439 && saved.preview.systemClock === '12', 'current settings saved locally');
         document.getElementById('pht-live').click();
         check(document.getElementById('pht-time').disabled, 'live time disables the slider');

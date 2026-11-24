@@ -1,5 +1,7 @@
 'use strict';
 
+var pointStepper = require('./point-stepper');
+
 var noValue = {
   get: function() { return ''; },
   set: function() {},
@@ -8,6 +10,11 @@ var noValue = {
 };
 
 module.exports = [{
+  name: 'typedial-point-stepper',
+  template: pointStepper.template,
+  style: pointStepper.style,
+  manipulator: noValue
+}, {
   name: 'typedial-preview',
   template: '<div class="td-preview"><div class="td-case"><canvas role="img"></canvas></div><div class="td-preview-info"><p class="td-model"></p><output class="td-time"></output><p class="td-status" role="status"></p></div></div>',
   style: [

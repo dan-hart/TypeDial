@@ -1,7 +1,6 @@
 'use strict';
 
 var profiles = require('./profiles');
-var sizeLabels = require('./contract.json').digitSizes.map(function(size) { return size[0]; });
 
 function select(id, label, labels, description) {
   return {
@@ -35,7 +34,7 @@ module.exports = [
   section('Time and typography', [
     select('format', 'Clock format', ['System', '12-hour', '24-hour']),
     select('font', 'Atkinson Hyperlegible', ['Mono Bold', 'Mono ExtraBold', 'Next Bold', 'Next Bold Italic', 'Original Bold']),
-    select('size', 'Digit size', sizeLabels, 'Digits scale down at times when the hands and reading order leave less room.')
+    { type: 'typedial-point-stepper', id: 'size' }
   ]),
   section('Placement and hands', [
     select('placement', 'Digits follow hands', ['Near the center', 'Closer to the tips']),

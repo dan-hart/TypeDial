@@ -287,6 +287,13 @@ static bool pair(const TdLayoutInput *in, TdLayout *out, int gap, int crowding, 
   return best != INT32_MAX;
 }
 
+int td_point_size(const TdLayoutInput *in) {
+  const uint16_t *scales = in->round ? TD_LEGACY_ROUND_DIGIT_SCALES : TD_LEGACY_DIGIT_SCALES;
+  int span = td_magnitude(in);
+  if (in->size < TD_LEGACY_SIZE_COUNT) return td_scale(span, scales[in->size]);
+  return min(td_scale(span, scales[TD_LEGACY_SIZE_COUNT - 1]), max(td_scale(span, scales[0]), in->size));
+}
+
 bool td_layout(const TdLayoutInput *in, const TdGlyphMetric metrics[TD_DIGITS], TdLayout *out) {
   memset(out, 0, sizeof(*out));
   TdPoint dir[2];
@@ -297,8 +304,7 @@ bool td_layout(const TdLayoutInput *in, const TdGlyphMetric metrics[TD_DIGITS], 
   int xshare = crowding ? (100 * y) / (x + y) : 50;
   int span = td_magnitude(in), gap = max(4, td_scale(span, 27));
   int hour = in->use_24h ? in->hour : (in->hour + 11) % 12 + 1;
-  const uint16_t *sizes = in->round ? TD_ROUND_DIGIT_SIZES : TD_DIGIT_SIZES;
-  for (int em = td_scale(span, sizes[in->size]); em >= td_scale(span, 120); --em) {
+  for (int em = td_point_size(in); em >= td_scale(span, 120); --em) {
     label_metrics(&out->labels[0], hour, in->use_24h, metrics, em);
     label_metrics(&out->labels[1], in->minute, true, metrics, em);
     TdRect a = out->labels[0].box, b = out->labels[1].box;

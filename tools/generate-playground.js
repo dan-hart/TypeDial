@@ -9,6 +9,7 @@ const glyphs = require('../src/pkjs/glyphs.json');
 const createColors = require('../src/pkjs/colors');
 const createGeometry = require('../src/pkjs/preview-geometry');
 const createRenderer = require('../src/pkjs/preview-renderer');
+const pointStepper = require('../src/pkjs/point-stepper');
 
 const directory = path.resolve(__dirname, '../playground');
 const controller = fs.readFileSync(path.join(directory, 'playground.js'), 'utf8');
@@ -17,18 +18,21 @@ const controls = config.flatMap(item => item.items || [item]).filter(item =>
   contract.keys.includes(item.id));
 for (const key of contract.keys.filter(key => key !== 'schema')) {
   const item = controls.find(control => control.id === key);
-  if (!item || !['select', 'toggle', 'color'].includes(item.type)) {
+  if (!item || !['select', 'toggle', 'color', 'typedial-point-stepper'].includes(item.type)) {
     throw new Error('Add playground support for the setting: ' + key);
   }
 }
 const data = JSON.stringify({ controls, contract, profiles, glyphs }).replaceAll('<', '\\u003c');
 const script = [
+  '  <style>' + pointStepper.style + '</style>',
   '  <script>',
   '  (() => {',
   `    const { controls, contract, profiles, glyphs } = ${data};`,
   `    const colors = (${createColors.toString()})();`,
-  `    const geometry = (${createGeometry.toString()})(contract.digitSizes);`,
+  `    const geometry = (${createGeometry.toString()})(contract.legacyDigitScales);`,
   `    const createRenderer = ${createRenderer.toString()};`,
+  `    const pointStepperTemplate = ${JSON.stringify(pointStepper.template)};`,
+  `    const mountPointStepper = ${pointStepper.mount.toString()};`,
   controller.trimEnd(),
   '  })();',
   '  </script>'
