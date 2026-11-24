@@ -1,0 +1,64 @@
+{
+  "name": "typedial",
+  "version": "0.1.0",
+  "author": "TypeDial",
+  "private": true,
+  "dependencies": {
+    "@rebble/clay": "1.1.0"
+  },
+  "pebble": {
+    "displayName": "TypeDial",
+    "uuid": "00926ed1-958f-47c3-ae1a-d1ebddf07cf2",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "capabilities": [
+      "configurable"
+    ],
+    "messageKeys": [
+      "Settings",
+      "Request",
+      "Report",
+      "Txn",
+      "Profile",
+      "Result",
+      "Clock24"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "raw",
+          "name": "FONT_0",
+          "file": "font-0.bin"
+        },
+        {
+          "type": "raw",
+          "name": "FONT_1",
+          "file": "font-1.bin"
+        },
+        {
+          "type": "raw",
+          "name": "FONT_2",
+          "file": "font-2.bin"
+        },
+        {
+          "type": "raw",
+          "name": "FONT_3",
+          "file": "font-3.bin"
+        },
+        {
+          "type": "raw",
+          "name": "FONT_4",
+          "file": "font-4.bin"
+        }
+      ]
+    }
+  }
+}
