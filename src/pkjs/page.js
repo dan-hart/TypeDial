@@ -158,7 +158,7 @@ module.exports = function configurePage() {
   function updatePage() {
     var profile = profiles[model];
     updatePointStepper(geometry.pointSize(profile, draft.size), geometry.pointSize(profile, 0),
-      geometry.pointSize(profile, contract.legacyDigitScales.length - 1));
+      contract.max[contract.keys.indexOf('size')]);
     preview.querySelector('.td-case').classList.toggle('round', profile.round);
     visible('mono', !profile.color);
     visible('palette', profile.color);

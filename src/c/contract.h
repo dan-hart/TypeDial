@@ -32,8 +32,8 @@ enum {
   TD_TICK_COLOR = 17,
 };
 
-static const uint8_t TD_DEFAULTS[TD_SETTINGS_LEN] = {1, 2, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 63, 64, 11, 37};
-static const uint8_t TD_MAX[TD_SETTINGS_LEN] = {1, 2, 1, 120, 1, 4, 1, 1, 1, 3, 1, 8, 1, 65, 64, 64, 68, 68};
+static const uint8_t TD_DEFAULTS[TD_SETTINGS_LEN] = {1, 2, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 63, 64, 11, 37};
+static const uint8_t TD_MAX[TD_SETTINGS_LEN] = {1, 2, 1, 240, 1, 4, 1, 1, 1, 3, 1, 8, 1, 65, 64, 64, 68, 68};
 static const uint16_t TD_LEGACY_DIGIT_SCALES[] = {190, 225, 266, 305, 350, 400, 450, 500, 550, 600};
 static const uint16_t TD_LEGACY_ROUND_DIGIT_SCALES[] = {190, 225, 266, 305, 350, 365, 380, 395, 410, 440};
 

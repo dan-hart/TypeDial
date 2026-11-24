@@ -303,7 +303,7 @@
       sizeProfile.value = preview.sizeProfile;
       const profile = profiles[preview.sizeProfile];
       updatePointStepper(geometry.pointSize(profile, preview.sizes[preview.sizeProfile] ?? settings.size),
-        geometry.pointSize(profile, 0), geometry.pointSize(profile, contract.legacyDigitScales.length - 1));
+        geometry.pointSize(profile, 0), contract.max[contract.keys.indexOf('size')]);
       byId('system-control').hidden = settings.format !== 0;
       byId('systemClock').value = preview.systemClock;
       byId('live').checked = preview.live;

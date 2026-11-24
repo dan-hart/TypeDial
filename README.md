@@ -14,7 +14,7 @@
 
 ## Make it yours
 
-- **Read it your way.** Choose system, 12-hour, or 24-hour time, five Atkinson Hyperlegible variants, and a digit size in 1 pt steps. Move the digits toward the center or the hands’ tips, and reverse either reading axis.
+- **Read it your way.** Choose system, 12-hour, or 24-hour time, five Atkinson Hyperlegible variants, and a digit size up to 240 pt, with 4 pt buttons and exact entry. Move the digits toward the center or the hands’ tips, and reverse either reading axis.
 - **Pick your colors.** Start with an hour- or minute-accent theme, then tune the background, hands, and dial marks using named Pebble colors and contrast guidance. On the Duo, choose the monochrome polarity.
 - **Keep the dial as quiet as you like.** Optional marks include quarter hours, dots, and symbols. The optional seconds hand passes behind the glyphs without shifting the hour and minute digits.
 - **Configure it offline.** Open TypeDial’s gear in the Pebble app. The live preview stays above **Save**, and settings sync locally to the watch. With seconds off, the watchface updates once a minute.
@@ -23,11 +23,11 @@
 
 | Watch | Display | Digit size | SDK target |
 | --- | --- | --- | --- |
-| Pebble Time 2 | 200 × 228 color | 38–120 pt | `emery` |
-| Pebble 2 Duo | 144 × 168 monochrome | 27–86 pt | `flint` |
-| Pebble Round 2 | 260 × 260 color | 49–114 pt | `gabbro` |
+| Pebble Time 2 | 200 × 228 color | 38–240 pt | `emery` |
+| Pebble 2 Duo | 144 × 168 monochrome | 27–240 pt | `flint` |
+| Pebble Round 2 | 260 × 260 color | 49–240 pt | `gabbro` |
 
-The selected size is an upper limit. TypeDial scales the digits down when the hands or dial marks leave less room.
+The default for new users is 60 pt. The selected size is an upper limit. TypeDial scales the digits down when the hands or dial marks leave less room.
 
 ## Try the design playground
 

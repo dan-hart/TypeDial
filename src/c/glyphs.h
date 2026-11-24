@@ -4,8 +4,13 @@
 #include "layout.h"
 #include <stddef.h>
 
-// Largest dial: 260 px × 60% × two 42/64 em glyphs, spacing, and a one-pixel halo.
-enum { TD_FONT_CAPACITY = 4096, TD_MASK_WIDTH = 216, TD_MASK_HEIGHT = 128, TD_MASK_STRIDE = TD_MASK_WIDTH / 8 };
+// A fitted label and its one-pixel halo stay on the dial. Size the masks per watch.
+#ifdef PBL_DISPLAY_WIDTH
+enum { TD_MASK_WIDTH = PBL_DISPLAY_WIDTH, TD_MASK_HEIGHT = PBL_DISPLAY_HEIGHT };
+#else
+enum { TD_MASK_WIDTH = 260, TD_MASK_HEIGHT = 260 }; // Host tests cover every dial.
+#endif
+enum { TD_FONT_CAPACITY = 4096, TD_MASK_STRIDE = (TD_MASK_WIDTH + 7) / 8 };
 typedef struct {
   TdGlyphMetric metric[TD_DIGITS];
   const uint8_t *rows[TD_DIGITS];

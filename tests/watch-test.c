@@ -39,6 +39,7 @@ static void load_fonts(void) {
 static void verify_settings(void) {
   uint8_t record[TD_SETTINGS_RECORD_LEN], loaded[TD_SETTINGS_LEN];
   uint32_t transaction = 0, generation = 0;
+  assert(TD_DEFAULTS[TD_SIZE] == 60 && TD_MAX[TD_SIZE] == 240);
   assert(td_settings_valid(TD_DEFAULTS, TD_SETTINGS_LEN));
   assert(!td_settings_valid(TD_DEFAULTS, TD_SETTINGS_LEN - 1));
   assert(!td_settings_valid(TD_DEFAULTS, TD_SETTINGS_LEN + 1));
@@ -141,6 +142,7 @@ static void verify_layout(const TdLayoutInput *in, int font, TdLayout *result) {
 }
 
 static void verify_accessible_sizes(void) {
+  static const int large_samples[] = {14 * 60 + 46, 14 * 60 + 45, 8 * 60 + 44};
   for (int p = 0; p < 3; ++p) {
     TdLayoutInput in = profiles[p];
     in.use_24h = true;
@@ -162,6 +164,18 @@ static void verify_accessible_sizes(void) {
     TdLayout intermediate;
     verify_layout(&in, 0, &intermediate);
     assert(intermediate.em == previous - 1);
+    in.size = TD_LEGACY_SIZE_COUNT - 1;
+    int old_limit = td_point_size(&in);
+    in.hour = large_samples[p] / 60;
+    in.minute = large_samples[p] % 60;
+    in.size = TD_MAX[TD_SIZE];
+    assert(td_point_size(&in) == 240);
+    TdLayout largest;
+    verify_layout(&in, 0, &largest);
+    assert(largest.em > old_limit);
+    TdMask mask;
+    for (int i = 0; i < 2; ++i)
+      assert(td_make_mask(&mask, &fonts[0], &largest.labels[i]));
   }
 }
 
@@ -320,7 +334,7 @@ static void fixtures(void) {
         in.hour = times[t] / 60;
         in.minute = times[t] % 60;
         in.use_24h = !(variant % 2);
-        static const uint8_t point_sizes[] = {TD_MIN_POINT_SIZE, 63, 120};
+        static const uint8_t point_sizes[] = {TD_MIN_POINT_SIZE, 60, 240};
         in.size = variant < TD_LEGACY_SIZE_COUNT ? variant : point_sizes[variant - TD_LEGACY_SIZE_COUNT];
         in.placement = variant % 2;
         in.horizontal = t % 2;

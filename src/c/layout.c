@@ -291,7 +291,7 @@ int td_point_size(const TdLayoutInput *in) {
   const uint16_t *scales = in->round ? TD_LEGACY_ROUND_DIGIT_SCALES : TD_LEGACY_DIGIT_SCALES;
   int span = td_magnitude(in);
   if (in->size < TD_LEGACY_SIZE_COUNT) return td_scale(span, scales[in->size]);
-  return min(td_scale(span, scales[TD_LEGACY_SIZE_COUNT - 1]), max(td_scale(span, scales[0]), in->size));
+  return max(td_scale(span, scales[0]), in->size);
 }
 
 bool td_layout(const TdLayoutInput *in, const TdGlyphMetric metrics[TD_DIGITS], TdLayout *out) {
@@ -310,6 +310,9 @@ bool td_layout(const TdLayoutInput *in, const TdGlyphMetric metrics[TD_DIGITS], 
     TdRect a = out->labels[0].box, b = out->labels[1].box;
     if (max(a.w, b.w) + 2 * gap > in->width || max(a.h, b.h) + 2 * gap > in->height ||
         (a.w + b.w + 3 * gap > in->width && a.h + b.h + 3 * gap > in->height)) continue;
+    // A label with a diagonal wider than the useful round dial cannot fit at any position.
+    if (in->round && max(square(a.w - 1) + square(a.h - 1), square(b.w - 1) + square(b.h - 1)) >
+        square(in->width - 2 * gap)) continue;
     scan(in, out, dir, 0, gap, crowding, xshare);
     scan(in, out, dir, 1, gap, crowding, xshare);
     if (!pair(in, out, gap, crowding, xshare)) continue;

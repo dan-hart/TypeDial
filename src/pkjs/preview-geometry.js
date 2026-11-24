@@ -34,7 +34,7 @@ module.exports = function createGeometry(legacyScales) {
   function pointSize(profile, value) {
     var span = min(profile.width, profile.height), column = profile.round ? 1 : 0;
     if (value < legacyScales.length) return scale(span, legacyScales[value][column]);
-    return min(scale(span, legacyScales[legacyScales.length - 1][column]), max(scale(span, legacyScales[0][column]), value));
+    return max(scale(span, legacyScales[0][column]), value);
   }
 
   function scaleGlyph(size, em) { return trunc((size * em + 32) / 64); }
@@ -214,6 +214,8 @@ module.exports = function createGeometry(legacyScales) {
       var a = out.labels[0].box, b = out.labels[1].box;
       if (max(a.w, b.w) + 2 * gap > input.width || max(a.h, b.h) + 2 * gap > input.height ||
           (a.w + b.w + 3 * gap > input.width && a.h + b.h + 3 * gap > input.height)) continue;
+      if (input.round && max(square(a.w - 1) + square(a.h - 1), square(b.w - 1) + square(b.h - 1)) >
+          square(input.width - 2 * gap)) continue;
       var candidates = [scan(input, out, dir, 0, gap, crowding, xshare),
         scan(input, out, dir, 1, gap, crowding, xshare)];
       if (!pair(input, out, candidates, gap, crowding, xshare)) continue;

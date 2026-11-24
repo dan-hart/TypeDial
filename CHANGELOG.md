@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Expanded the requested digit size to 240 pt, set a 60 pt default for new users, and widened the entry field with 4 pt buttons.
 - Added GPLv3 licensing, third-party notices, and contributor documentation.
 - Added GitHub Actions checks for native layouts, offline settings, and the design playground.
 
