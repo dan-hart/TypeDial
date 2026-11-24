@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>TypeDial Playground</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; background: light-dark(#f5f4ef, #191a18); }
+    main { box-sizing: border-box; max-width: 1150px; margin: 0 auto; padding: clamp(12px, 3vw, 28px); }
+  </style>
+</head>
+<body>
+<main>
+<div id="typedial-playground">
+  <style>
+    @font-face {font-family:PHTMono;src:url(data:font/woff2;base64,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) format('woff2');}
+    @font-face {font-family:PHTMonoXB;src:url(data:font/woff2;base64,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) format('woff2');}
+    @font-face {font-family:PHTNext;src:url(data:font/woff2;base64,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) format('woff2');}
+    @font-face {font-family:PHTItalic;src:url(data:font/woff2;base64,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) format('woff2');}
+    @font-face {font-family:PHTOriginal;src:url(data:font/woff2;base64,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) format('woff2');}
+    #typedial-playground {
+      --surface: light-dark(#fffefa,#222322);
+      --ink: light-dark(#232520,#f3f2eb);
+      --quiet: light-dark(#535850,#b7b9ad);
+      --border: light-dark(#d0d2c7,#505249);
+      --selected: light-dark(#e3e8dc,#3d463b);
+      --alert: light-dark(#8b3319,#ffb6a2);
+      --accent: #ff6600;
+      color:var(--ink); font: 14px/1.4 system-ui,sans-serif;
+    }
+    #typedial-playground * { box-sizing:border-box; }
+    #typedial-playground [hidden] { display:none!important; }
+    #typedial-playground h1, #typedial-playground h2, #typedial-playground h3, #typedial-playground p { margin:0; }
+    #typedial-playground h1, #typedial-playground h2 { font-size:22px; letter-spacing:-.035em; }
+    #typedial-playground h3 { font-size:15px; }
+    #typedial-playground .quiet { color:var(--quiet); font-size:12px; }
+    #typedial-playground button, #typedial-playground select {
+      font:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--border);
+      border-radius:8px; min-height:36px; padding:5px 8px; min-width:0;
+    }
+    #typedial-playground button[aria-pressed="true"] { background:var(--selected); border-color:var(--accent); }
+    #typedial-playground input[type="range"] { width:100%; accent-color:var(--quiet); }
+    #typedial-playground input[type="checkbox"] { accent-color:var(--quiet); width:17px; height:17px; }
+    #typedial-playground .row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    #typedial-playground .split { display:flex; gap:10px; align-items:center; justify-content:space-between; }
+    #typedial-playground .wide { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(300px,1fr); gap:14px; }
+    #typedial-playground .stage {
+      display:flex; flex-direction:column; gap:14px; padding:18px; border-radius:16px; min-width:0;
+      background:light-dark(#ecece4,#2b2d27);
+    }
+    #typedial-playground .screen-row { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:13px; }
+    #typedial-playground figure { margin:0; text-align:center; min-width:0; }
+    #typedial-playground figcaption { margin-top:7px; font-weight:600; }
+    #typedial-playground .case {
+      display:inline-flex; align-items:center; justify-content:center; max-width:100%;
+      padding:7px; border-radius:15px; background:#262823; border:1px solid #62655a;
+      box-shadow:0px 4px 8px #0002, inset 0 0 0 2px #ffffff0d;
+    }
+    #typedial-playground .case.round { border-radius:50%; }
+    #typedial-playground canvas { display:block; width:100%; height:auto; max-width:100%; }
+    #typedial-playground .round canvas { border-radius:50%; }
+    #typedial-playground .hero .case { width:min(100%,210px); }
+    #typedial-playground .hero > .screen-row { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    #typedial-playground .vignettes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:auto; }
+    #typedial-playground .hero .vignettes .case { width:min(100%,86px); padding:4px; }
+    #typedial-playground .vignettes figcaption { font-size:12px; font-weight:500; }
+    #typedial-playground .settings {
+      display:grid; gap:11px; align-content:start; background:var(--surface); border:1px solid var(--border);
+      border-radius:16px; padding:16px; min-width:0;
+    }
+    #typedial-playground .pair { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    #typedial-playground .field { display:grid; gap:3px; min-width:0; }
+    #typedial-playground .fonts button { flex:1 1 54px; display:grid; gap:1px; justify-items:center; }
+    #typedial-playground .sample { font-size:22px; line-height:1.05; }
+    #typedial-playground hr { border:0; border-top:1px solid var(--border); margin:0; }
+    #typedial-playground output { font-variant-numeric:tabular-nums; }
+    #typedial-playground .contrast { min-height:18px; }
+    #typedial-playground .contrast.problem { color:var(--alert); }
+    #typedial-playground .swatch { display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--quiet); }
+    #typedial-playground .color-field { position:relative; }
+    #typedial-playground .color-field select { width:100%; padding-inline-start:26px; }
+    #typedial-playground .color-field .swatch { position:absolute; inset-inline-start:8px; inset-block-end:12px; pointer-events:none; }
+    #typedial-playground .swatch-picker summary { min-height:32px; align-content:center; cursor:pointer; }
+    #typedial-playground .swatch-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:5px; margin-top:6px; }
+    #typedial-playground .swatch-grid button { display:flex; align-items:center; gap:6px; text-align:start; font-size:12px; }
+    #typedial-playground .swatch-grid .swatch { flex:0 0 16px; width:16px; height:16px; }
+    #typedial-playground .swatch-group { margin-top:8px; }
+    #typedial-playground .palette-group { display:grid; gap:5px; }
+    #typedial-playground .palette { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(126px,100%),1fr)); gap:5px; }
+    #typedial-playground .palette button { display:flex; align-items:center; justify-content:space-between; gap:5px; text-align:start; }
+    #typedial-playground .palette-sample { display:inline-flex; align-items:center; gap:3px; flex-shrink:0; }
+    #typedial-playground .palette-sample .swatch { width:10px; height:10px; }
+    #typedial-playground .portfolio { margin-top:18px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; }
+    #typedial-playground .gallery { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr)); gap:12px; margin-top:12px; }
+    #typedial-playground .model { display:grid; gap:7px; text-align:center; border-radius:12px; padding:10px 8px 8px; background:light-dark(#efefe8,#2b2d27); }
+    #typedial-playground .model .screen-row { gap:6px; }
+    #typedial-playground .model .case { width:min(100%,92px); padding:4px; border-radius:10px; }
+    #typedial-playground .model .case.round { border-radius:50%; }
+    #typedial-playground .model figcaption { font-size:12px; font-weight:500; font-variant-numeric:tabular-nums; }
+    #typedial-playground .case canvas { width:100% !important; height:auto; image-rendering:pixelated; }
+    @media(max-width:665px) {
+      #typedial-playground .wide { grid-template-columns:minmax(0,1fr); }
+    }
+    @media(pointer:coarse) {
+      #typedial-playground button, #typedial-playground select { min-height:44px; }
+    }
+  </style>
+  <div class="wide">
+    <section class="stage hero" aria-label="TypeDial watchface preview">
+      <h1>TypeDial Playground</h1>
+      <div class="screen-row" data-hero></div>
+      <label class="row" for="pht-live"><input id="pht-live" type="checkbox"> Live preview</label>
+      <div>
+        <label class="split" for="pht-time">Preview time <output id="pht-clock" for="pht-time"></output></label>
+        <input id="pht-time" type="range" min="0" max="1439" value="1296">
+      </div>
+      <div class="row" aria-label="Example times">
+        <button type="button" data-time="0">00:00</button>
+        <button type="button" data-time="608">10:08</button>
+        <button type="button" data-time="720">12:00</button>
+        <button type="button" data-time="915">15:15</button>
+        <button type="button" data-time="1296">21:36</button>
+        <button type="button" data-time="1439">23:59</button>
+      </div>
+      <div id="pht-seconds-control" hidden>
+        <label class="split" for="pht-second">Preview seconds <output id="pht-second-value" for="pht-second"></output></label>
+        <input id="pht-second" type="range" min="0" max="59" value="42">
+      </div>
+      <div class="vignettes" data-vignettes aria-label="Open hands, close hands, and midnight"></div>
+    </section>
+    <section class="settings" aria-label="Phone app settings preview">
+      <h2>Watchface settings</h2>
+      <div class="pair">
+        <label class="field">Time format<select id="pht-format"></select></label>
+        <label class="field" id="pht-system-control" hidden>System clock preference<select id="pht-systemClock"><option value="24">24-hour</option><option value="12">12-hour</option></select></label>
+        <label class="field">Digit placement<select id="pht-placement"></select></label>
+        <label class="field">Digit size<select id="pht-size"></select></label>
+        <label class="field">Hand weight<select id="pht-weight"></select></label>
+        <label class="field">Horizontal order<select id="pht-horizontal"></select></label>
+        <label class="field">Vertical order<select id="pht-vertical"></select></label>
+      </div>
+      <div class="field">
+        <h3>Atkinson Hyperlegible</h3>
+        <div class="row fonts" data-fonts></div>
+      </div>
+      <div class="pair">
+        <label class="split" for="pht-seconds">Seconds hand <input id="pht-seconds" type="checkbox"></label>
+        <label class="split" for="pht-ticks">Tick marks <input id="pht-ticks" type="checkbox"></label>
+        <label class="field">Seconds hand style<select id="pht-secondStyle"></select></label>
+        <label class="field">Tick mark style
+          <select id="pht-tickStyle"></select>
+        </label>
+      </div>
+      <hr>
+      <div class="split"><h3>Color helper</h3><span class="quiet">Offline · Pebble palette</span></div>
+      <section class="palette-group" aria-labelledby="pht-hour-palette-title">
+        <h3 id="pht-hour-palette-title">Hour accent</h3>
+        <div class="palette" data-palettes="hour"></div>
+      </section>
+      <section class="palette-group" aria-labelledby="pht-minute-palette-title">
+        <h3 id="pht-minute-palette-title">Minute accent</h3>
+        <div class="palette" data-palettes="minute"></div>
+      </section>
+      <div class="pair" data-colors></div>
+      <details class="swatch-picker" data-swatch-picker>
+        <summary>Browse named color swatches</summary>
+        <label class="field">Apply color to<select id="pht-swatchRole"></select></label>
+        <div class="swatch-group" data-swatch-groups></div>
+      </details>
+      <div class="split">
+        <p class="quiet contrast" data-contrast aria-live="polite"></p>
+        <button type="button" id="pht-fix" hidden>Fix contrast</button>
+      </div>
+      <p class="quiet">Targets · 4.5:1 for hour and minute · 3:1 for seconds and ticks</p>
+      <label class="field">Black-and-white watches<select id="pht-mono"></select></label>
+    </section>
+  </div>
+  <section class="portfolio" aria-label="Pebble watch comparison">
+    <div class="split">
+      <h2>Supported Pebble watches</h2>
+      <label class="row" for="pht-compare"><input id="pht-compare" type="checkbox" checked> Compare 12 / 24-hour</label>
+    </div>
+    <div class="gallery" data-gallery></div>
+  </section>
+  <!-- TYPE_DIAL_PLAYGROUND_SCRIPT -->
+</div>
+</main>
+</body>
+</html>

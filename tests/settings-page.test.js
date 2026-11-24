@@ -148,3 +148,50 @@ for (const [platform, width, height, color] of [
     }
   });
 }
+
+test('the standalone playground renders current settings and saves edits offline', { skip: !chrome }, () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'typedial-playground-'));
+  try {
+    const original = fs.readFileSync(path.join(__dirname, '../playground/index.html'), 'utf8');
+    const testHtml = path.join(tmp, 'playground.html');
+    const harness = `<script>
+      try {
+        const check = (condition, message) => { if (!condition) throw Error(message); };
+        const set = (id, value) => {
+          const input = document.getElementById('pht-' + id);
+          input.value = value;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        const canvases = document.querySelectorAll('[data-hero] canvas');
+        check([...canvases].map(canvas => canvas.width + 'x' + canvas.height).join(',') === '200x228,144x168,260x260',
+          'all supported display dimensions');
+        check(document.querySelectorAll('[data-gallery] canvas').length === 6, 'side-by-side formats');
+        check(document.querySelectorAll('#pht-size option').length === 10, 'all current digit sizes');
+        check(document.querySelectorAll('#pht-tickStyle option').length === 9, 'all current tick styles');
+        check(document.querySelector('[data-palettes="hour"] button').textContent === 'Ember', 'hour accent presets');
+        document.querySelector('[data-time="1439"]').click();
+        check(canvases[0].getAttribute('aria-label').includes('23:59'), '24-hour example');
+        set('format', '0');
+        set('systemClock', '12');
+        check(canvases[0].getAttribute('aria-label').includes('11:59 PM'), 'system clock example');
+        set('size', '9');
+        document.querySelector('[data-palettes="hour"] button').click();
+        const saved = JSON.parse(localStorage.getItem('typedial-playground.settings'));
+        check(saved.settings.size === 9 && saved.settings.hour === 64 && saved.settings.bg === 0 &&
+          saved.preview.time === 1439 && saved.preview.systemClock === '12', 'current settings saved locally');
+        document.getElementById('pht-live').click();
+        check(document.getElementById('pht-time').disabled, 'live time disables the slider');
+        document.body.dataset.result = 'pass';
+      } catch (error) { document.body.dataset.result = error.message; }
+    </script>`;
+    fs.writeFileSync(testHtml, original.replace('</body>', harness + '</body>'));
+    const out = child.execFileSync(chrome, ['--headless', '--disable-gpu', '--disable-background-networking',
+      '--no-first-run', '--no-default-browser-check', '--host-resolver-rules=MAP * ~NOTFOUND',
+      '--user-data-dir=' + path.join(tmp, 'chrome'), '--dump-dom', 'file://' + testHtml],
+    { encoding: 'utf8', maxBuffer: 1024 * 1024 * 3, timeout: 20000, stdio: ['ignore', 'pipe', 'ignore'] });
+    const body = out.match(/<body[^>]*data-result="([^"]+)"/);
+    assert.equal(body && body[1], 'pass');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
