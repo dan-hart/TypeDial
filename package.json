@@ -2,6 +2,12 @@
   "name": "typedial",
   "version": "0.1.1",
   "author": "TypeDial",
+  "license": "GPL-3.0-only",
+  "description": "A hybrid analog and digital watchface for Pebble",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dan-hart/TypeDial.git"
+  },
   "private": true,
   "dependencies": {
     "@rebble/clay": "1.1.0"
